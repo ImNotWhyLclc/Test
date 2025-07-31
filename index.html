@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RENDEX Dashboard with Animations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #121212; --text: #fff;
+      --card-bg: #1e1e1e; --card-border: #2e2e2e;
+      --input-bg: #2e2e2e; --input-text: #fff; --input-border: #444;
+      --gradient-green-light:#34C759; --gradient-green-dark:#28A745;
+      --gradient-red-light:#FF3B30; --gradient-red-dark:#C1272D;
+      --arrow-color:#fff;
+      --duration: 0.4s;
+    }
+    body.light-theme {
+      --bg:#fff; --text:#000;
+      --card-bg:#f9f9f9; --card-border:#ccc;
+      --input-bg:#fff; --input-text:#000; --input-border:#bbb;
+      --gradient-green-light:#4CD964; --gradient-green-dark:#34C759;
+      --gradient-red-light:#FF7F7F; --gradient-red-dark:#FF3B30;
+      --arrow-color:#333;
+    }
+    *, *::before, *::after {box-sizing:border-box;}
+    body {
+      margin:0; padding:0;
+      background:var(--bg); color:var(--text);
+      font-family:'Inter',sans-serif;
+      min-height:100vh;
+      transition:background var(--duration),color var(--duration);
+    }
+    nav.navbar {
+      background:var(--card-bg); padding:12px 16px;
+      border-bottom:1px solid var(--card-border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .search-container input {
+      width:100%; max-width:400px;
+      padding:6px 12px; border:1px solid var(--input-border);
+      border-radius:4px; background:var(--input-bg);
+      color:var(--input-text); transition:all var(--duration);
+    }
+    .custom-dropdown {
+      position:relative; user-select:none;
+    }
+    .dropdown-selected {
+      display:flex; align-items:center; gap:6px;
+      padding:6px 10px; border:1px solid var(--input-border);
+      border-radius:4px; background:var(--input-bg);
+      color:var(--input-text); cursor:pointer; transition:all var(--duration);
+    }
+    .dropdown-options {
+      position:absolute; top:calc(100% + 4px); right:0;
+      background:var(--card-bg); border:1px solid var(--input-border);
+      border-radius:4px; overflow:hidden; display:none;
+      box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    }
+    .custom-dropdown.open .dropdown-options {display:block;}
+    .dropdown-options div {
+      padding:8px 12px; display:flex; align-items:center; gap:6px;
+      cursor:pointer; transition:background 0.2s;
+    }
+    .dropdown-options div:hover {background:var(--input-border);}
+    .container {max-width:960px; margin:24px auto; padding:0 16px;}
+    .exploit-list {display:flex; flex-direction:column; gap:20px;}
+    .exploit-item {
+      background:var(--card-bg); border:2px solid var(--card-border);
+      border-left-width:6px; border-radius:8px; overflow:hidden;
+      transform:translateY(20px) scale(0.95); opacity:0;
+      animation:flyIn var(--duration) ease forwards;
+    }
+    .exploit-item:nth-child(1) {animation-delay:0.1s;}
+    .exploit-item:nth-child(2) {animation-delay:0.2s;}
+    .exploit-item:nth-child(3) {animation-delay:0.3s;}
+    .exploit-item:nth-child(4) {animation-delay:0.4s;}
+    .status-updated {border-left-color:var(--gradient-green-dark);}
+    .status-notupdated {border-left-color:var(--gradient-red-dark);}
+    .exploit-item.recommended {box-shadow:0 0 10px rgba(231,76,60,0.6);}
+    .item-header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:16px 20px; cursor:pointer;
+      transition:background var(--duration);
+    }
+    .item-header:hover {background:rgba(255,255,255,0.05);}
+    .item-title {display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+    .item-title h2 {font-size:1.3rem; font-weight:500; color:var(--text);}
+    .tag {font-size:0.8rem; padding:4px 10px; border-radius:12px;
+      font-weight:500;color:#fff; transition:background var(--duration);}
+    .tag-version,.tag-sunc {background:#333;}
+    .tag-sunc .s-letter {color:var(--color-purple-solid);}
+    .tag-recommended {background:linear-gradient(90deg,var(--gradient-pink-light),var(--gradient-pink-dark));}
+    .tag-price {background:linear-gradient(90deg,var(--gradient-cyan-light),var(--gradient-cyan-dark));}
+    .tag-free {background:linear-gradient(90deg,var(--gradient-green-light),var(--gradient-green-dark));}
+    .status-label {
+      padding:6px 14px;font-weight:600;color:#fff;border-radius:12px;
+      background:linear-gradient(90deg,var(--gradient-green-light),var(--gradient-green-dark));
+      transition:background var(--duration);
+    }
+    .status-notupdated > .item-header > .status-label {
+      background:linear-gradient(90deg,var(--gradient-red-light),var(--gradient-red-dark));
+    }
+    .chevron {
+      width:18px;height:18px; stroke:var(--arrow-color); stroke-width:2;
+      fill:none; transition:transform var(--duration),stroke var(--duration);
+    }
+    .item-header.open .chevron {transform:rotate(90deg);}
+    .item-subheader {font-size:0.88rem;color:#aaa;padding:0 20px 12px;}
+    .item-body {
+      max-height:0; opacity:0; overflow:hidden; padding:0 20px;
+      border-top:1px solid var(--card-border);
+      transition:max-height var(--duration),opacity var(--duration),padding var(--duration);
+    }
+    .item-body.show {
+      max-height:500px; opacity:1; padding:20px;
+    }
+    .button-group {display:flex; gap:12px;margin-bottom:16px;}
+    .button-group button {
+      background:var(--card-border); color:var(--text);
+      padding:10px 16px; border-radius:6px;
+      transition:background 0.1s; cursor:pointer;
+    }
+    .button-group button:hover {background:var(--input-border);}
+    @keyframes flyIn {
+      to {transform:translateY(0) scale(1); opacity:1;}
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="site-title">RENDEX</div>
+    <div class="search-container">
+      <input id="searchInput" type="search" placeholder="Search..." />
+    </div>
+    <div class="custom-dropdown" id="themeDropdown">
+      <div class="dropdown-selected">
+        <span id="themeIcon">🌙</span>Theme
+      </div>
+      <div class="dropdown-options">
+        <div data-value="dark">🌙 Dark</div>
+        <div data-value="light">☀️ Light</div>
+      </div>
+    </div>
+  </nav>
+  <div class="container"><section class="exploit-list">
+    <!-- cards same as before -->
+    <!-- copy your four cards markup here unchanged -->
+  </section></div>
+<script>
+  // toggle theme
+  const dropdown = document.getElementById('themeDropdown');
+  dropdown.querySelector('.dropdown-selected').addEventListener('click', e => {
+    dropdown.classList.toggle('open');
+  });
+  dropdown.querySelectorAll('.dropdown-options div').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const val = opt.getAttribute('data-value');
+      document.body.classList.toggle('light-theme', val==='light');
+      document.getElementById('themeIcon').textContent = val==='light'?'☀️':'🌙';
+      dropdown.classList.remove('open');
+    });
+  });
+  // card toggle
+  function toggleBody(h) {
+    const item = h.closest('.exploit-item');
+    const body = item.querySelector('.item-body');
+    const open = body.classList.toggle('show');
+    h.classList.toggle('open', open);
+    h.classList.toggle('closed', !open);
+  }
+  document.getElementById('searchInput').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.exploit-item').forEach(c => {
+      const t = c.querySelector('h2').textContent.toLowerCase();
+      c.style.display = t.includes(q)?'':'none';
+    });
+  });
+</script>
+</body>
+</html>
