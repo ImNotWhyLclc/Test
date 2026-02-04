@@ -60,7 +60,6 @@ local MainESP = {
     _positionCache = {},
 }
 
---[[ Drawing Creation Functions ]]--
 function MainESP.CreateBox()
     local box = Drawing.new("Square")
     box.Thickness = 1
@@ -1060,24 +1059,71 @@ local CompatibilityFuncs = {
     end,
 }
 
--- Apply game-specific compatibility
 if CompatibilityFuncs[game.PlaceId] then
     CompatibilityFuncs[game.PlaceId]()
 end
 
---[[ Player Management ]]--
 Services.Players.PlayerAdded:Connect(function(player)
     MainESP:CreateESP(player)
 end)
-
 Services.Players.PlayerRemoving:Connect(function(player)
     MainESP:RemoveESP(player.Name)
 end)
-
 for _, player in pairs(Services.Players:GetPlayers()) do
     if player ~= LocalPlayer then
         MainESP:CreateESP(player)
     end
 end
+
+if game.PlaceId == 606849621 then
+    MainESP.ObjectOptions.Crates = true
+end
+
+local function createESPForExistingDrops()
+    if not MainESP.ObjectOptions.Crates or game.PlaceId ~= 606849621 then
+        return
+    end
+
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj.Name == "Drop" and obj:IsA("Model") then
+            MainESP:CreateESP(nil, obj, "Crate")
+        end
+    end
+end
+
+local function removeCrateESP()
+    local crates_to_remove = {}
+    for obj, esp_data in pairs(MainESP.Container) do
+        if typeof(obj) == "Instance" and obj.Name == "Drop" and obj:IsA("Model") then
+            table.insert(crates_to_remove, obj)
+        end
+    end
+    for _, obj in pairs(crates_to_remove) do
+        MainESP:RemoveESP(obj)
+    end
+end
+
+createESPForExistingDrops()
+
+workspace.ChildAdded:Connect(function(obj)
+    if not MainESP.ObjectOptions.Crates or game.PlaceId ~= 606849621 then
+        return
+    end
+
+    if obj.Name == "Drop" and obj:IsA("Model") then
+        task.wait()
+        MainESP:CreateESP(nil, obj, "Crate")
+    end
+end)
+
+workspace.ChildRemoved:Connect(function(obj)
+    if game.PlaceId ~= 606849621 or not MainESP.Container[obj] then
+        return
+    end
+
+    if obj.Name == "Drop" and obj:IsA("Model") then
+        MainESP:RemoveESP(obj)
+    end
+end)
 
 return MainESP, CullingSystem
