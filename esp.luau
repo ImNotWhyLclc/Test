@@ -54,6 +54,7 @@ local MainESP = {
 		Color = Color3.fromRGB(255, 255, 0),
 		TracerOrigin = "Bottom",
 		TracerThickness = 0,
+		Crates = false,
 	},
     -- Optimization caches
     _colorCache = {},
