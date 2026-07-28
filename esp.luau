@@ -1029,6 +1029,12 @@ local function setupCrateESP()
     end
 
     local function handleDropModel(dropModel)
+        if isValidCrate(dropModel) then
+            MainESP:CreateESP(nil, dropModel, "Drop", function(obj)
+                return obj:FindFirstChild("Top") ~= nil
+            end)
+        end
+
         for _, descendant in pairs(dropModel:GetDescendants()) do
             if isValidCrate(descendant) then
                 MainESP:CreateESP(nil, descendant, "Drop", function(obj)
