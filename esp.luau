@@ -597,6 +597,7 @@ function MainESP:CreateESP(player, object, customName, customPredicate)
             end
         end)
     end
+end
 
 function MainESP:HidePlayerESP(playerESP)
     for elementName, element in pairs(playerESP) do
