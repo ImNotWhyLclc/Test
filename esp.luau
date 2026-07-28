@@ -553,26 +553,28 @@ function MainESP:CreateESP(player, object, customName, customPredicate)
                 local isCrate = object:IsA("Model") and object:FindFirstChild("Top")
                 
                 if onScreen and (self.ObjectOptions.Name or self.ObjectOptions.Distance or isCrate) then
-                    local name = self.ObjectOptions.Name and (customName or object.Name) or ""
-                    local distance = ""
-                    local countdown = ""
-                    
-                    if self.ObjectOptions.Distance then
-                        local dist = math.round(self.GetDistanceFromPlayer(LocalPlayer, objPos))
-                        distance = "\n[" .. tostring(dist) .. " studs]"
-                    end
+                    local parts = {}
                     
                     if isCrate then
                         local parent = object.Parent
                         if parent and parent:FindFirstChild("Countdown") then
                             local bb = parent.Countdown:FindFirstChild("Billboard")
                             if bb and bb:FindFirstChild("TextLabel") then
-                                countdown = "\n" .. bb.TextLabel.Text
+                                table.insert(parts, bb.TextLabel.Text)
                             end
                         end
                     end
                     
-                    local finalText = name .. countdown .. distance
+                    if self.ObjectOptions.Name then
+                        table.insert(parts, customName or object.Name)
+                    end
+                    
+                    if self.ObjectOptions.Distance then
+                        local dist = math.round(self.GetDistanceFromPlayer(LocalPlayer, objPos))
+                        table.insert(parts, "[" .. tostring(dist) .. " studs]")
+                    end
+                    
+                    local finalText = table.concat(parts, "\n")
                     
                     if finalText ~= "" then
                         ObjectESP.Info.Text = finalText
@@ -595,7 +597,6 @@ function MainESP:CreateESP(player, object, customName, customPredicate)
             end
         end)
     end
-end
 
 function MainESP:HidePlayerESP(playerESP)
     for elementName, element in pairs(playerESP) do
